@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G4 PTS Schedule Review</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 24px; color: #222; }
+h1, h2 { margin-bottom: 8px; }
+.summary { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:16px 0 24px; }
+.card { border:1px solid #ddd; border-radius:10px; padding:14px; background:#fafafa; }
+table { border-collapse: collapse; width:100%; margin: 12px 0 24px; }
+th, td { border:1px solid #ddd; padding:8px; text-align:left; vertical-align: top; }
+th { background:#f2f2f2; }
+.controls { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0 18px; }
+select, input { padding:8px; border:1px solid #bbb; border-radius:6px; }
+.small { color:#666; font-size: 0.92rem; }
+.badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; background:#eee; margin-right:4px; }
+.good { background:#e8f5e9; }
+.warn { background:#fff8e1; }
+.strong { background:#ffebee; }
+</style>
+</head>
+<body>
+<h1>Grade 4 PTS Schedule Review</h1>
+<p class="small">Updated for 2-period testing windows (80 minutes total including buffer). The plan finishes Grade 4 in 4 blocks, with 3 of them on Tuesday.</p>
+
+<div class="summary">
+  <div class="card"><strong>Total classes</strong><br>7</div>
+  <div class="card"><strong>Total sessions used</strong><br>4</div>
+  <div class="card"><strong>Sessions tomorrow</strong><br>3</div>
+  <div class="card"><strong>Parallel limit</strong><br>2 classes per block</div>
+</div>
+
+<h2>Recommended schedule</h2>
+<table>
+<thead><tr><th>Date</th><th>Window</th><th>Time</th><th>Classes</th><th>Senior Leader</th></tr></thead>
+<tbody>
+<tr><td>Tue 19 May 2026</td><td>P1–2</td><td>8:00–9:20</td><td>4KB</td><td>Rachel</td></tr><tr><td>Tue 19 May 2026</td><td>P4–5</td><td>10:40–12:00</td><td>4AS + 4MS</td><td>Michael</td></tr><tr><td>Tue 19 May 2026</td><td>P5–6</td><td>11:20–12:40</td><td>4DS + 4TM</td><td>Anne</td></tr><tr><td>Wed 20 May 2026</td><td>P1–2</td><td>8:00–9:20</td><td>4CP + 4HB</td><td>Greer</td></tr>
+</tbody>
+</table>
+
+<h2>Review by class</h2>
+<div class="controls">
+  <label>Class
+    <select id="classFilter">
+      <option value="">All classes</option>
+      <option value="4AS">4AS</option><option value="4CP">4CP</option><option value="4DS">4DS</option><option value="4HB">4HB</option><option value="4KB">4KB</option><option value="4MS">4MS</option><option value="4TM">4TM</option>
+    </select>
+  </label>
+  <label>Show only classes with support needs
+    <select id="supportFilter">
+      <option value="">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </label>
+</div>
+
+<table id="classTable">
+<thead>
+<tr>
+<th>Class</th><th>Teacher</th><th>Students</th><th>ALN/ELL</th><th>Date</th><th>Window</th><th>Time</th><th>Timetable snapshot</th><th>Disruption</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h2>Students needing extra assistance</h2>
+<p class="small">This list is filtered to the Grade 4 PT cohort from the uploaded student files and latest iSAMS export.</p>
+<table id="supportTable">
+<thead><tr><th>Class</th><th>Student</th><th>Indicator</th><th>Register Flag</th><th>Support Role</th><th>Support Area</th></tr></thead>
+<tbody></tbody>
+</table>
+
+<script>
+const classData = [{"Class": "4AS", "Teacher": "Ashley Jane Smyth", "Students": 26, "Support": 8, "Date": "Tue 19 May 2026", "Window": "P4–5", "Times": "10:40–12:00", "Snapshot": "P4: Homeroom Arabic B/Social Studies | P5: Arabic A PYP/Arabic B PYP", "Score": 0, "SupportNames": ["Ebrahim Aldhefairi", "Khalifa Hamdan Alhosani", "Mira Basur", "Nada Yousuf", "Saif Almesmari", "Salama Alshemeili", "Sophia Sarhan", "Thuttanont Tantirujananont"]}, {"Class": "4CP", "Teacher": "Chane Elizabeth Pieterse", "Students": 26, "Support": 2, "Date": "Wed 20 May 2026", "Window": "P1–2", "Times": "8:00–9:20", "Snapshot": "P1: Arabic A PYP/Arabic B PYP | P2: Arabic A PYP/Arabic B PYP", "Score": 0, "SupportNames": ["Mariah Abdulhannan", "Tiago Ferreira Da Silva Marques Sardinha"]}, {"Class": "4DS", "Teacher": "Devon Swart", "Students": 26, "Support": 6, "Date": "Tue 19 May 2026", "Window": "P5–6", "Times": "11:20–12:40", "Snapshot": "P5: Homeroom | P6: Homeroom", "Score": 0, "SupportNames": ["Aditya Joseph", "Haley Botha", "Latifa Manafova", "Mohamed Al Hameli", "Petra Gharaibeh", "Thobin Joshua Van Ommen Kloeke"]}, {"Class": "4HB", "Teacher": "Hannah Louise Bullock", "Students": 26, "Support": 3, "Date": "Wed 20 May 2026", "Window": "P1–2", "Times": "8:00–9:20", "Snapshot": "P1: Arabic A PYP/Arabic B PYP | P2: Arabic A PYP/Arabic B PYP", "Score": 0, "SupportNames": ["Hamad Alhammadi", "Mathis Morvan", "Valeriia Tuneva"]}, {"Class": "4KB", "Teacher": "Kevin Thomas Brosnan", "Students": 26, "Support": 8, "Date": "Tue 19 May 2026", "Window": "P1–2", "Times": "8:00–9:20", "Snapshot": "P1: Homeroom | P2: Arabic A PYP/Arabic B PYP", "Score": 0, "SupportNames": ["Ahmed Alfalahi", "Lilyanna Alhammadi", "Quim Gimenez", "Ryan Elfauri", "Saara Hirvonen", "Shaikha Alqubaisi", "Yarub Hussein", "Yousef Al Ahmad"]}, {"Class": "4MS", "Teacher": "Megan Smith", "Students": 26, "Support": 7, "Date": "Tue 19 May 2026", "Window": "P4–5", "Times": "10:40–12:00", "Snapshot": "P4: Homeroom Arabic B/Social Studies | P5: Arabic A PYP/Arabic B PYP", "Score": 0, "SupportNames": ["Ahmed Alsuwaidi", "Aya Al Sayegh", "Emma Petz", "Fabian Valero Polo-mihaila", "Hamad Al Marri", "Sami Ammar", "Tobias Robinson"]}, {"Class": "4TM", "Teacher": "Teressa McDonald", "Students": 25, "Support": 4, "Date": "Tue 19 May 2026", "Window": "P5–6", "Times": "11:20–12:40", "Snapshot": "P5: Homeroom | P6: Homeroom", "Score": 0, "SupportNames": ["Abdalla Al Ali", "Alfred Grieve", "Ciaran Valtierra", "Malek Maher"]}];
+const supportData = [{"Class": "4AS", "Student Name": "Ebrahim Aldhefairi", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4AS", "Student Name": "Khalifa Hamdan Alhosani", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4AS", "Student Name": "Mira Basur", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4AS", "Student Name": "Nada Yousuf", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy"}, {"Class": "4AS", "Student Name": "Saif Almesmari", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4AS", "Student Name": "Salama Alshemeili", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy"}, {"Class": "4AS", "Student Name": "Sophia Sarhan", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy"}, {"Class": "4AS", "Student Name": "Thuttanont Tantirujananont", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural"}, {"Class": "4CP", "Student Name": "Mariah Abdulhannan", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Physical , Sensory and Medical"}, {"Class": "4CP", "Student Name": "Tiago Ferreira Da Silva Marques Sardinha", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "ELL Teacher", "Support Area": "ELL"}, {"Class": "4DS", "Student Name": "Aditya Joseph", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4DS", "Student Name": "Haley Botha", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": ""}, {"Class": "4DS", "Student Name": "Latifa Manafova", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL"}, {"Class": "4DS", "Student Name": "Mohamed Al Hameli", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural"}, {"Class": "4DS", "Student Name": "Petra Gharaibeh", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy"}, {"Class": "4DS", "Student Name": "Thobin Joshua Van Ommen Kloeke", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL"}, {"Class": "4HB", "Student Name": "Hamad Alhammadi", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4HB", "Student Name": "Mathis Morvan", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math"}, {"Class": "4HB", "Student Name": "Valeriia Tuneva", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL"}, {"Class": "4KB", "Student Name": "Ahmed Alfalahi", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Social, Emotional and Behavioural"}, {"Class": "4KB", "Student Name": "Lilyanna Alhammadi", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math"}, {"Class": "4KB", "Student Name": "Quim Gimenez", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4KB", "Student Name": "Ryan Elfauri", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4KB", "Student Name": "Saara Hirvonen", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "ELL"}, {"Class": "4KB", "Student Name": "Shaikha Alqubaisi", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL"}, {"Class": "4KB", "Student Name": "Yarub Hussein", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL"}, {"Class": "4KB", "Student Name": "Yousef Al Ahmad", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": ""}, {"Class": "4MS", "Student Name": "Ahmed Alsuwaidi", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy"}, {"Class": "4MS", "Student Name": "Aya Al Sayegh", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4MS", "Student Name": "Emma Petz", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4MS", "Student Name": "Fabian Valero Polo-mihaila", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4MS", "Student Name": "Hamad Al Marri", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4MS", "Student Name": "Sami Ammar", "Additional Need Indicator": "ALN", "Register Flag": "Tier 3", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy"}, {"Class": "4MS", "Student Name": "Tobias Robinson", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural"}, {"Class": "4TM", "Student Name": "Abdalla Al Ali", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4TM", "Student Name": "Alfred Grieve", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4TM", "Student Name": "Ciaran Valtierra", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}, {"Class": "4TM", "Student Name": "Malek Maher", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy"}];
+
+function disruptionBadge(score) {
+  if (score === 0) return '<span class="badge good">clean</span>';
+  if (score <= 1) return '<span class="badge warn">low</span>';
+  return '<span class="badge strong">higher</span>';
+}
+
+function render() {
+  const classFilter = document.getElementById('classFilter').value;
+  const supportFilter = document.getElementById('supportFilter').value;
+  const classBody = document.querySelector('#classTable tbody');
+  const supportBody = document.querySelector('#supportTable tbody');
+
+  const filteredClasses = classData.filter(r => {
+    if (classFilter && r.Class !== classFilter) return false;
+    if (supportFilter === 'yes' && !(r.Support > 0)) return false;
+    return true;
+  });
+
+  classBody.innerHTML = filteredClasses.map(r => `
+    <tr>
+      <td>${r.Class}</td>
+      <td>${r.Teacher}</td>
+      <td>${r.Students}</td>
+      <td>${r.Support}</td>
+      <td>${r.Date}</td>
+      <td>${r.Window}</td>
+      <td>${r.Times}</td>
+      <td>${r.Snapshot}</td>
+      <td>${disruptionBadge(r.Score)} ${r.Score}</td>
+    </tr>
+  `).join('');
+
+  const allowed = new Set(filteredClasses.map(r => r.Class));
+  const filteredSupport = supportData.filter(r => allowed.has(r.Class));
+  supportBody.innerHTML = filteredSupport.map(r => `
+    <tr>
+      <td>${r.Class}</td>
+      <td>${r["Student Name"]}</td>
+      <td>${r["Additional Need Indicator"]}</td>
+      <td>${r["Register Flag"] || ''}</td>
+      <td>${r["Support Role"] || ''}</td>
+      <td>${r["Support Area"] || ''}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('classFilter').addEventListener('change', render);
+document.getElementById('supportFilter').addEventListener('change', render);
+render();
+</script>
+</body>
+</html>
