@@ -3,109 +3,162 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Schedule Viewer</title>
+<title>Primary PT Schedule Viewer</title>
 <style>
 :root {
-  --bg:#f8fafc; --line:#d1d5db; --text:#111827; --muted:#6b7280;
-  --g3:#2563eb; --g4:#16a34a; --g5:#d97706; --pts:#7c3aed; --ptm:#0f766e; --pte:#b91c1c;
+  --bg:#f8fafc; --panel:#ffffff; --line:#d1d5db; --text:#111827; --muted:#6b7280;
+  --g3:#2563eb; --g4:#16a34a; --g5:#d97706;
+  --pts:#7c3aed; --ptm:#0f766e; --pte:#b91c1c;
 }
 * { box-sizing:border-box; }
 body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
 header { background:#fff; border-bottom:1px solid var(--line); padding:20px 24px; position:sticky; top:0; z-index:20; }
 h1 { margin:0 0 6px; font-size:28px; }
-.sub { color:var(--muted); margin:0; }
-.wrap { max-width:1400px; margin:0 auto; padding:20px 24px 32px; }
-.tabs { display:flex; gap:10px; flex-wrap:wrap; margin:0 0 18px; }
-.tab-btn { border:none; background:#e5e7eb; padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer; }
-.tab-btn.active { background:#111827; color:#fff; }
-.tab-pane { display:none; }
-.tab-pane.active { display:block; }
-.panel { background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+.sub { margin:0; color:var(--muted); }
+.wrap { max-width:1600px; margin:0 auto; padding:20px 24px 32px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+.summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
+.summary-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; }
 .controls { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 14px; align-items:end; }
 label { font-size:13px; color:var(--muted); }
-select, input { display:block; margin-top:4px; min-width:160px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+select, input[type="text"] { display:block; margin-top:4px; min-width:160px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+button { border:none; background:#111827; color:#fff; padding:9px 12px; border-radius:8px; cursor:pointer; }
+button.secondary { background:#475569; }
 table { width:100%; border-collapse:collapse; background:#fff; }
-th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; font-size:14px; }
+th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; font-size:14px; }
 th { background:#f3f4f6; position:sticky; top:72px; z-index:5; }
 .badge { display:inline-block; padding:3px 8px; border-radius:999px; color:#fff; font-size:12px; font-weight:700; }
 .g3 { background:var(--g3); } .g4 { background:var(--g4); } .g5 { background:var(--g5); }
 .pts { background:var(--pts); } .ptm { background:var(--ptm); } .pte { background:var(--pte); }
+.note { color:var(--muted); margin-bottom:12px; }
+.tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+.tab-btn { border:none; background:#e5e7eb; color:#111827; padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer; }
+.tab-btn.active { background:#111827; color:#fff; }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+.status-complete { color:#166534; font-weight:700; }
+.status-incomplete { color:#b91c1c; font-weight:700; }
 .session-row { cursor:pointer; }
 .session-row:hover { background:#f9fafb; }
-.note { margin-bottom:12px; color:var(--muted); }
 .modal-backdrop { position:fixed; inset:0; background:rgba(17,24,39,.5); display:none; align-items:center; justify-content:center; z-index:50; padding:24px; }
 .modal-backdrop.open { display:flex; }
-.modal { background:#fff; width:min(1100px, 100%); max-height:90vh; overflow:auto; border-radius:14px; border:1px solid var(--line); box-shadow:0 20px 50px rgba(0,0,0,.2); }
+.modal { background:#fff; width:min(1000px, 100%); max-height:90vh; overflow:auto; border-radius:14px; border:1px solid var(--line); box-shadow:0 20px 50px rgba(0,0,0,.2); }
 .modal header { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--line); padding:16px 18px; }
 .modal .body { padding:18px; }
-.close-btn { border:none; background:#111827; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer; float:right; }
-.summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
-.summary-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; }
-.stage-pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:12px; font-weight:700; }
+.close-btn { float:right; }
+.small { color:var(--muted); font-size:12px; }
+.cell-select { min-width:220px; width:100%; }
+.conflict-note { color:#b91c1c; font-size:12px; margin-top:4px; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Schedule Viewer</h1>
-  <p class="sub">Only items on or before 20 May are shown. Student names are initials only and teacher names are initial plus surname.</p>
+  <h1>Primary PT Schedule Viewer</h1>
+  <p class="sub">Valid dropdowns only. Options are filtered so clashes cannot be selected. You can export the current matrix to CSV.</p>
 </header>
+
 <div class="wrap">
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="master">Master Schedule</button>
-    <button class="tab-btn" data-tab="support">Support Needs</button>
+  <div class="summary-grid">
+    <div class="summary-card"><strong>Total classes</strong><br>21</div>
+    <div class="summary-card"><strong>PTS type</strong><br>80 mins</div>
+    <div class="summary-card"><strong>PTM/PTE type</strong><br>120 mins</div>
+    <div class="summary-card"><strong>Rule enforced</strong><br>Max 2 classes in any session</div>
   </div>
-  <section class="tab-pane active" id="master">
-    <div class="summary-grid">
-      <div class="summary-card"><strong>Total scheduled rows</strong><br>4</div>
-      <div class="summary-card"><strong>Grades</strong><br>PYP4</div>
-      <div class="summary-card"><strong>Test types</strong><br>PTS</div>
-      <div class="summary-card"><strong>Date range</strong><br>Up to 20 May</div>
-    </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="matrixTab">Completeness Matrix</button>
+    <button class="tab-btn" data-tab="dateTab">By Date</button>
+    <button class="tab-btn" data-tab="supportTab">Support Needs</button>
+  </div>
+
+  <section class="tab-pane active" id="matrixTab">
     <div class="panel">
       <div class="controls">
         <label>Grade
-          <select id="gradeFilter">
+          <select id="matrixGradeFilter">
             <option value="">All grades</option>
+            <option value="PYP3">PYP3</option>
             <option value="PYP4">PYP4</option>
-          </select>
-        </label>
-        <label>Test type
-          <select id="testFilter">
-            <option value="">All tests</option>
-            <option value="PTS">PTS</option>
+            <option value="PYP5">PYP5</option>
           </select>
         </label>
         <label>Class
-          <select id="classFilter">
+          <select id="matrixClassFilter">
             <option value="">All classes</option>
-            <option value="4AS + 4MS">4AS + 4MS</option><option value="4CP + 4HB">4CP + 4HB</option><option value="4DS + 4TM">4DS + 4TM</option><option value="4KB">4KB</option>
           </select>
         </label>
-        <label>Search
-          <input id="searchFilter" type="text" placeholder="Teacher or lesson">
+        <label>Show incomplete only
+          <select id="incompleteFilter">
+            <option value="">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </label>
+        <button id="exportCsv" class="secondary">Download CSV</button>
+        <button id="resetData">Reset to original</button>
+      </div>
+      <div id="completenessSummary" class="note"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Grade</th>
+            <th>Class</th>
+            <th>Teacher</th>
+            <th>Students</th>
+            <th>ALN/ELL</th>
+            <th>PTS</th>
+            <th>PTM</th>
+            <th>PTE</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="tab-pane" id="dateTab">
+    <div class="panel">
+      <div class="controls">
+        <label>Grade
+          <select id="dateGradeFilter">
+            <option value="">All grades</option>
+            <option value="PYP3">PYP3</option>
+            <option value="PYP4">PYP4</option>
+            <option value="PYP5">PYP5</option>
+          </select>
+        </label>
+        <label>Test
+          <select id="dateTestFilter">
+            <option value="">All tests</option>
+            <option value="PTS">PTS</option>
+            <option value="PTM">PTM</option>
+            <option value="PTE">PTE</option>
+          </select>
+        </label>
+        <label>Class
+          <select id="dateClassFilter">
+            <option value="">All classes</option>
+          </select>
         </label>
       </div>
-      <div class="note">Click any row to view session details in a modal.</div>
+      <div class="note">Click any session row to see the classes scheduled in that session.</div>
       <table>
         <thead>
           <tr>
             <th>Date</th>
-            <th>Window</th>
-            <th>Stage</th>
-            <th>Grade</th>
-            <th>Class</th>
-            <th>Test</th>
-            <th>Teacher</th>
-            <th>Students</th>
-            <th>ALN/ELL</th>
-            <th>Affected lessons</th>
+            <th>Session</th>
+            <th>Time</th>
+            <th>Classes</th>
+            <th>Tests</th>
+            <th>Grades</th>
           </tr>
         </thead>
-        <tbody id="masterBody"></tbody>
+        <tbody id="dateBody"></tbody>
       </table>
     </div>
   </section>
-  <section class="tab-pane" id="support">
+
+  <section class="tab-pane" id="supportTab">
     <div class="panel">
       <table>
         <thead>
@@ -127,9 +180,7 @@ th { background:#f3f4f6; position:sticky; top:72px; z-index:5; }
       <div id="modalMeta" class="note"></div>
       <table>
         <thead>
-          <tr>
-            <th>Stage</th><th>Grade</th><th>Class</th><th>Test</th><th>Teacher</th><th>Students</th><th>ALN/ELL</th><th>Affected lessons</th><th>Timetable snapshot</th>
-          </tr>
+          <tr><th>Grade</th><th>Class</th><th>Test</th><th>Teacher</th><th>Students</th><th>ALN/ELL</th><th>Value</th></tr>
         </thead>
         <tbody id="modalBody"></tbody>
       </table>
@@ -138,8 +189,32 @@ th { background:#f3f4f6; position:sticky; top:72px; z-index:5; }
 </div>
 
 <script>
-const scheduleData = [{"Stage": "Existing G4 PTS", "Grade": "PYP4", "Class": "4KB", "Test": "PTS", "Date": "Tue 19 May 2026", "DateISO": "2026-05-19", "Day": "Tuesday", "Window": "P1–2", "Times": "8:00–9:20", "Homeroom Teacher": "", "Students": "", "ALN/ELL": "", "Disruption Score": "", "Timetable Snapshot": "", "Affected Lessons": "", "StageLabel": "Existing G4 PTS"}, {"Stage": "Existing G4 PTS", "Grade": "PYP4", "Class": "4CP + 4HB", "Test": "PTS", "Date": "Tue 19 May 2026", "DateISO": "2026-05-19", "Day": "Tuesday", "Window": "P4–5", "Times": "10:40–12:00", "Homeroom Teacher": "", "Students": "", "ALN/ELL": "", "Disruption Score": "", "Timetable Snapshot": "", "Affected Lessons": "", "StageLabel": "Existing G4 PTS"}, {"Stage": "Existing G4 PTS", "Grade": "PYP4", "Class": "4DS + 4TM", "Test": "PTS", "Date": "Tue 19 May 2026", "DateISO": "2026-05-19", "Day": "Tuesday", "Window": "P5–6", "Times": "11:20–12:40", "Homeroom Teacher": "", "Students": "", "ALN/ELL": "", "Disruption Score": "", "Timetable Snapshot": "", "Affected Lessons": "", "StageLabel": "Existing G4 PTS"}, {"Stage": "Existing G4 PTS", "Grade": "PYP4", "Class": "4AS + 4MS", "Test": "PTS", "Date": "Wed 20 May 2026", "DateISO": "2026-05-20", "Day": "Wednesday", "Window": "P1–2", "Times": "8:00–9:20", "Homeroom Teacher": "", "Students": "", "ALN/ELL": "", "Disruption Score": "", "Timetable Snapshot": "", "Affected Lessons": "", "StageLabel": "Existing G4 PTS"}];
-const supportData = [{"Student UID": 897938, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "e.aldhefairi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EA"}, {"Student UID": 898254, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "khalifa.alhosani@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "2 September 2024 _x000D_\nMarch 2025 - Khalifa has made comendable progress and it was decided by his class teacher and Inclusion Teacher that he no longer requires assistance on a Tier 2 Level - he will be moved down to Tier 1 ona monitoring basis.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "KHA"}, {"Student UID": 924540, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "mira.basur@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "On a monitoring basis for spelling and reading_x000D_\nFollowing review with Ms.Annie, in June 2025 - it was decided that Mira would be removed from the ALN register. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MB"}, {"Student UID": 930173, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "nada.yousuf@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "February 2023 - placed on a Tier 2 plan for literacy support._x000D_\nDecember 2024 - still on a Tier 2 plan but Math has been added to her intervention needs.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "NY"}, {"Student UID": 932371, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "saif.almesmari@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2023 - was placed on a level 2 passport for literacy support._x000D_\n_x000D_\nMay 2024 received diagnosis of Inattative ADHD and Specific learning disorder in reading and writing ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA"}, {"Student UID": 920940, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "salama.alshemeili@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "January 2023 - Salama was placed on a level 2 student support passport for literacy support._x000D_\nSeptember 2024 - Math was added to Salama's support plan ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA"}, {"Student UID": 981855, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SS"}, {"Student UID": 898140, "Grade": "PYP4", "Class": "4AS", "Homeroom Teacher": "Ashley Jane Smyth", "Teacher Email": "asmyth@ris.ae", "Student Email": "t.tantirujananont@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Thut is on a Level1 classroom support", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TT"}, {"Student UID": 898101, "Grade": "PYP4", "Class": "4CP", "Homeroom Teacher": "Chane Elizabeth Pieterse", "Teacher Email": "cpieterse@ris.ae", "Student Email": "m.abdulhannan@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Physical , Sensory and Medical", "Register Notes": "Monitoring basis - Mariya has very mild cerebral palsy. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MA"}, {"Student UID": 940738, "Grade": "PYP4", "Class": "4CP", "Homeroom Teacher": "Chane Elizabeth Pieterse", "Teacher Email": "cpieterse@ris.ae", "Student Email": "tiago.sardinha@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "ELL Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nNovember 2024 - was moved to Tier 1 monitoring group._x000D_\nJune 2025 - was removed from the ELL register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TFDSMS"}, {"Student UID": 931587, "Grade": "PYP4", "Class": "4DS", "Homeroom Teacher": "Devon Swart", "Teacher Email": "dswart@ris.ae", "Student Email": "aditya.joseph@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2024 - Adi was placed on a Tier 2 intervention plan for his cognitive and learning needs. _x000D_\nMarch 2026- Adi was placed on Tier 1 Monitoring. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AJ"}, {"Student UID": 923707, "Grade": "PYP4", "Class": "4DS", "Homeroom Teacher": "Devon Swart", "Teacher Email": "dswart@ris.ae", "Student Email": "haley.botha@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": "", "Register Notes": "Needs extra support with English, she does well in and used to First language", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HB"}, {"Student UID": 982071, "Grade": "PYP4", "Class": "4DS", "Homeroom Teacher": "Devon Swart", "Teacher Email": "dswart@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "LM"}, {"Student UID": 919642, "Grade": "PYP4", "Class": "4DS", "Homeroom Teacher": "Devon Swart", "Teacher Email": "dswart@ris.ae", "Student Email": "mohamed.alhameli@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MAH"}, {"Student UID": 982041, "Grade": "PYP4", "Class": "4DS", "Homeroom Teacher": "Devon Swart", "Teacher Email": "dswart@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "PG"}, {"Student UID": 981919, "Grade": "PYP4", "Class": "4DS", "Homeroom Teacher": "Devon Swart", "Teacher Email": "dswart@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan._x000D_\nFebruary 2026 - was moved to tier 1 monitoring group.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TJVOK"}, {"Student UID": 940956, "Grade": "PYP4", "Class": "4HB", "Homeroom Teacher": "Hannah Louise Bullock", "Teacher Email": "hbullock@ris.ae", "Student Email": "hamad.alhammadi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "January 2024 - was placed on an ELL plan._x000D_\nMarch 2025 - was placed on the combined IEP._x000D_\nJune 2025 - was removed from the ELL and remained on IEP support.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HA"}, {"Student UID": 940563, "Grade": "PYP4", "Class": "4HB", "Homeroom Teacher": "Hannah Louise Bullock", "Teacher Email": "hbullock@ris.ae", "Student Email": "mathis.morvan@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math", "Register Notes": "January 2024 - Mathis was placed on a Tier 2 intervention plan for his cognition and learning needs. _x000D_\nMarch 2025 - Based on the progress Mathis has made and following a review of his IEP goals, both his class teacher and inclusion teacher are in agreement that he no longer needs assistance on a Tier 2 level. Mathis is being moved to Tier 1 - on a monitoring basis.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MM"}, {"Student UID": 939942, "Grade": "PYP4", "Class": "4HB", "Homeroom Teacher": "Hannah Louise Bullock", "Teacher Email": "hbullock@ris.ae", "Student Email": "valeriia.tuneva@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nNovember 2025 - was placed on the Tier 1 monitoring list.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "VT"}, {"Student UID": 931376, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "ahmed.alfalahi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Ahmed struggles to stay seated during class time and needs regular movement breaks ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AA"}, {"Student UID": 932394, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "l.alhammadi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math", "Register Notes": "March 2023 - placed on a level 2 student support passport for literacy support. _x000D_\n_x000D_\nMarch 2025- Received diagnosis of Dyscalculia ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "LA"}, {"Student UID": 981886, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Quim joined the school in August 2025 with an IEP from his previous school with IEP goals focusing on reading and writing. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "QG"}, {"Student UID": 981762, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "ryan.elfauri@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Ryan joined the school in January 2025 and was put in a Tier 2 intervention plan for his cognitive and learning needs. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "RE"}, {"Student UID": 945655, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "saara.hirvonen@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2024 - was placed on an ELL plan._x000D_\nOctober 2025 - was moved to Tier 1._x000D_\nFebruary 2026 - was taken off the register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SH"}, {"Student UID": 920247, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "shaikha.alqubaisi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "Was referred to ELL on May 2025 and placed on Tier 2 ELL.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA"}, {"Student UID": 931394, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "yarub.hussein@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "October 2022 - Assessed on the placement LAS Links assessment and falls in the beginning range of English language proficiency._x000D_\nSeptember 2022 - was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "YH"}, {"Student UID": 919680, "Grade": "PYP4", "Class": "4KB", "Homeroom Teacher": "Kevin Thomas Brosnan", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "yousef.alahmad@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": "", "Register Notes": "Did not receive a referral for Yousef however Caiomhe was concerned about his speech and on observation he has speech as well as motor difficulties - it was suggested to mom to go for a Speech Therapy assessment and that his motor skills would be monitored beginning of next year.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "YAA"}, {"Student UID": 920218, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "ahmed.suwaidi@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "November 2020: Has been receiving support from the counsellor for decreased ability to regulate emotions. Counsellor has been working closely with teacher and providing strategies to teacher to try in the class with him._x000D_\nJune 2022 - will be going onto a student passport._x000D_\nNovember 2024 - Mum has requested that he be taken off support - Services currently suspended", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AA"}, {"Student UID": 898026, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "aya.alsayegh@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "January 2023 - placed on a level 2 passport for literacy support _x000D_\nJune 2024 - Placed on a Tier 1 passport ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AAS"}, {"Student UID": 937357, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "emma.petz@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Emma was placed on a Tier 2 Intervention plan for her cognition and learning needs. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EP"}, {"Student UID": 930125, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "f.polomihaila@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2022 - Put on a Tier 2 Plan for literacy support_x000D_\nDecember 2024 - Fabian was moved from Tier 2 to Tier 1 - based on his progress when IEPs where reviewed in November 2024_x000D_\n", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "FVP"}, {"Student UID": 930064, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "hamadalmarri@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Hamad was referred in April 2023 due to concerns with his writing and reading. After assessment he was placed on aa passport in May and passport meeting with parents took place in June 2023.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HAM"}, {"Student UID": 982001, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 3", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "Came with an IEP from previous school (Al Basma) _x000D_\nWent onto Inclusion register immediately. _x000D_\nReceived Ed Psych report 6th of February 2026 with a diagnosis of Developmental learning disorder with impairment in multiple academic domains.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA"}, {"Student UID": 940643, "Grade": "PYP4", "Class": "4MS", "Homeroom Teacher": "Megan Smith", "Teacher Email": "msmith@ris.ae", "Student Email": "tobias.robinson@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Nil", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TR"}, {"Student UID": 919848, "Grade": "PYP4", "Class": "4TM", "Homeroom Teacher": "Teressa McDonald", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "abdalla.alali@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Referral made December 2024_x000D_\n11 March 2024", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AAA"}, {"Student UID": 924850, "Grade": "PYP4", "Class": "4TM", "Homeroom Teacher": "Teressa McDonald", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "alfred.grieve@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2024 - Alfie is placed on Tier 2 intervention for his cognitive and learning needs_x000D_\nMarch 2025 - Based on the progress Alfie has made and following a review of his IEP goals, both his class teacher and inclusion teacher are in agreement that he no longer needs asistance on a Tier 2 level. Alfie is being moved to Tier 1 - on a monitoring basis.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AG"}, {"Student UID": 920037, "Grade": "PYP4", "Class": "4TM", "Homeroom Teacher": "Teressa McDonald", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "ciaran.valtierra@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "February 2023 - was placed on a level 2 student support passport for literacy support.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "CV"}, {"Student UID": 924447, "Grade": "PYP4", "Class": "4TM", "Homeroom Teacher": "Teressa McDonald", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "malek.maher@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "February 2023 - placed on a Tier 2 intervention plan for literacy support.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MM"}];
+const originalMatrix = [{"Grade": "PYP3", "Class": "3CS", "Teacher": "C. Sharman", "Students": 25, "ALN_ELL": 4, "PTS": "Mon 01 Jun 2026 | AM (8:00–10:00)", "PTM": "Wed 03 Jun 2026 | AM (8:00–10:00)", "PTE": "Mon 08 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP3", "Class": "3DR", "Teacher": "D. Robinson", "Students": 26, "ALN_ELL": 7, "PTS": "Mon 01 Jun 2026 | AM (8:00–10:00)", "PTM": "Wed 03 Jun 2026 | AM (8:00–10:00)", "PTE": "Tue 09 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP3", "Class": "3HM", "Teacher": "H. Maine", "Students": 26, "ALN_ELL": 6, "PTS": "Mon 01 Jun 2026 | PM (10:40–12:40)", "PTM": "Wed 03 Jun 2026 | PM (10:40–12:40)", "PTE": "Tue 09 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP3", "Class": "3LC", "Teacher": "L. Costello", "Students": 24, "ALN_ELL": 4, "PTS": "Mon 01 Jun 2026 | PM (10:40–12:40)", "PTM": "Wed 03 Jun 2026 | PM (10:40–12:40)", "PTE": "Tue 09 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP3", "Class": "3LK", "Teacher": "L. Kolesky", "Students": 26, "ALN_ELL": 5, "PTS": "Tue 02 Jun 2026 | AM (8:00–10:00)", "PTM": "Thu 04 Jun 2026 | AM (8:00–10:00)", "PTE": "Tue 09 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP3", "Class": "3SL", "Teacher": "", "Students": 26, "ALN_ELL": 9, "PTS": "Tue 02 Jun 2026 | AM (8:00–10:00)", "PTM": "Thu 04 Jun 2026 | AM (8:00–10:00)", "PTE": "Wed 10 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP3", "Class": "3VC", "Teacher": "V. Cosgrave", "Students": 24, "ALN_ELL": 4, "PTS": "Tue 02 Jun 2026 | PM (10:40–12:40)", "PTM": "Thu 04 Jun 2026 | PM (10:40–12:40)", "PTE": "Wed 10 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP4", "Class": "4AS", "Teacher": "A. Smyth", "Students": 26, "ALN_ELL": 8, "PTS": "Wed 20 May 2026 | P1–2 (8:00–9:20)", "PTM": "Tue 02 Jun 2026 | PM (10:40–12:40)", "PTE": "Fri 12 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP4", "Class": "4CP", "Teacher": "C. Pieterse", "Students": 26, "ALN_ELL": 2, "PTS": "Tue 19 May 2026 | P4–5 (10:40–12:00)", "PTM": "Thu 04 Jun 2026 | PM (10:40–12:40)", "PTE": "Mon 15 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP4", "Class": "4DS", "Teacher": "D. Swart", "Students": 26, "ALN_ELL": 6, "PTS": "Tue 19 May 2026 | P5–6 (11:20–12:40)", "PTM": "Fri 05 Jun 2026 | AM (8:00–10:00)", "PTE": "Mon 15 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP4", "Class": "4HB", "Teacher": "H. Bullock", "Students": 26, "ALN_ELL": 3, "PTS": "Tue 19 May 2026 | P4–5 (10:40–12:00)", "PTM": "Fri 05 Jun 2026 | AM (8:00–10:00)", "PTE": "Mon 15 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP4", "Class": "4KB", "Teacher": "K. Brosnan", "Students": 26, "ALN_ELL": 8, "PTS": "Tue 19 May 2026 | P1–2 (8:00–9:20)", "PTM": "Mon 08 Jun 2026 | AM (8:00–10:00)", "PTE": "Mon 15 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP4", "Class": "4MS", "Teacher": "M. Smith", "Students": 26, "ALN_ELL": 7, "PTS": "Wed 20 May 2026 | P1–2 (8:00–9:20)", "PTM": "Mon 08 Jun 2026 | AM (8:00–10:00)", "PTE": "Tue 16 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP4", "Class": "4TM", "Teacher": "T. McDonald", "Students": 25, "ALN_ELL": 4, "PTS": "Tue 19 May 2026 | P5–6 (11:20–12:40)", "PTM": "Mon 08 Jun 2026 | PM (10:40–12:40)", "PTE": "Tue 16 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP5", "Class": "5AD", "Teacher": "A. O'Donnell", "Students": 25, "ALN_ELL": 3, "PTS": "Wed 10 Jun 2026 | PM (10:40–12:40)", "PTM": "Tue 16 Jun 2026 | PM (10:40–12:40)", "PTE": "Thu 18 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP5", "Class": "5CM", "Teacher": "C. Mcinerney", "Students": 26, "ALN_ELL": 2, "PTS": "Wed 10 Jun 2026 | PM (10:40–12:40)", "PTM": "Tue 16 Jun 2026 | PM (10:40–12:40)", "PTE": "Thu 18 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP5", "Class": "5EF", "Teacher": "E. Finnerty", "Students": 26, "ALN_ELL": 2, "PTS": "Thu 11 Jun 2026 | AM (8:00–10:00)", "PTM": "Wed 17 Jun 2026 | AM (8:00–10:00)", "PTE": "Thu 18 Jun 2026 | PM (10:40–12:40)"}, {"Grade": "PYP5", "Class": "5KS", "Teacher": "K. Sadaphal", "Students": 26, "ALN_ELL": 6, "PTS": "Thu 11 Jun 2026 | AM (8:00–10:00)", "PTM": "Wed 17 Jun 2026 | AM (8:00–10:00)", "PTE": "Fri 19 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP5", "Class": "5LB", "Teacher": "L. Bibi", "Students": 26, "ALN_ELL": 4, "PTS": "Thu 11 Jun 2026 | PM (10:40–12:40)", "PTM": "Wed 17 Jun 2026 | PM (10:40–12:40)", "PTE": "Fri 19 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP5", "Class": "5MS", "Teacher": "M. Smith", "Students": 26, "ALN_ELL": 6, "PTS": "Thu 11 Jun 2026 | PM (10:40–12:40)", "PTM": "Wed 17 Jun 2026 | PM (10:40–12:40)", "PTE": "Mon 22 Jun 2026 | AM (8:00–10:00)"}, {"Grade": "PYP5", "Class": "5RP", "Teacher": "R. Perrone", "Students": 25, "ALN_ELL": 2, "PTS": "Fri 12 Jun 2026 | AM (8:00–10:00)", "PTM": "Thu 18 Jun 2026 | AM (8:00–10:00)", "PTE": "Mon 22 Jun 2026 | AM (8:00–10:00)"}];
+const supportData = [{"Student UID": 939922, "Grade": "PYP3", "Class": "3CS", "Teacher Email": "csharman@ris.ae", "Student Email": "aleksei.eremeev@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nFebruary 2026 - was moved to tier 1 monitoring group.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AE", "Teacher": "C. Sharman"}, {"Student UID": 940057, "Grade": "PYP3", "Class": "3CS", "Teacher Email": "csharman@ris.ae", "Student Email": "carmo.galego@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nOctober 2025 - was placed on the Tier 1 monitoring list.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "CG", "Teacher": "C. Sharman"}, {"Student UID": 981901, "Grade": "PYP3", "Class": "3CS", "Teacher Email": "csharman@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SK", "Teacher": "C. Sharman"}, {"Student UID": 925460, "Grade": "PYP3", "Class": "3CS", "Teacher Email": "csharman@ris.ae", "Student Email": "talya.darwish@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Talya was Referred to SST in May 2025 - June 2025 following assessments and observations she was place on Tier 1 for monitoring", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TD", "Teacher": "C. Sharman"}, {"Student UID": 925450, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "eleanor.lowell@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Eleanor was placed on a Tier 2 intervention plan for her cognition and learning needs _x000D_\n_x000D_\nNovember 2025 - Based on the progress Ella has made - Mr.Darren and Ms.Niki Feel that she would no longer require Tier 2 support and have moved her to a student success plan (Tier 1)", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EL", "Teacher": "D. Robinson"}, {"Student UID": 945626, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "greta.haddadin@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "New to English - support has started in first week in new academic year_x000D_\nSeptember 2024 - was placed on an ELL plan._x000D_\nOctober 2025 - was placed on the Tier1 monitoring list.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "GMH", "Teacher": "D. Robinson"}, {"Student UID": 981750, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "hanna.dywicki@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "January 2025 - was placed on an ELL plan._x000D_\nOctober 2025 - was placed on Tier 1 monitoring list.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HD", "Teacher": "D. Robinson"}, {"Student UID": 939941, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "karolina.tuneva@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "KT", "Teacher": "D. Robinson"}, {"Student UID": 926007, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "maha.alghfeli@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Maha was placed on a Tier 2 Intervention plan with specific goals pertaining to Literacy. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MA", "Teacher": "D. Robinson"}, {"Student UID": 925385, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "maryam.alkayyoomi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2025 - Maryam was referred to Inclusion - following observations and assessments - she has been placed on Tier 2.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MA", "Teacher": "D. Robinson"}, {"Student UID": 898294, "Grade": "PYP3", "Class": "3DR", "Teacher Email": "drobinson@ris.ae", "Student Email": "syavash.mcdermott@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Physical , Sensory and Medical", "Register Notes": "PD note: 2nd percentile for growth concerns around safety e.g. climbing stairs. Invite to meet inclusion_x000D_\n_x000D_\nDecember 2020: Started receiving push in support from the student support team for motor difficulties and social skills._x000D_\n_x000D_\nFrom Term 3 2021: Syavash was placed on a Tier 2 intervetion plan with specific goals._x000D_\n", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SOS-M", "Teacher": "D. Robinson"}, {"Student UID": 981745, "Grade": "PYP3", "Class": "3HM", "Teacher Email": "hmaine@ris.ae", "Student Email": "andrew.dargham@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Physical , Sensory and Medical", "Register Notes": "April 2025 - Andrew was placed on Tier 1 - for his classroom functioning needs.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "ABD", "Teacher": "H. Maine"}, {"Student UID": 981929, "Grade": "PYP3", "Class": "3HM", "Teacher Email": "hmaine@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "CW", "Teacher": "H. Maine"}, {"Student UID": 981869, "Grade": "PYP3", "Class": "3HM", "Teacher Email": "hmaine@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "Joined Raha August 2025, was flagged by admissions for low scores. Mother explained she needs extra support with writing, spelling, reading and maths._x000D_\n_x000D_\nReceived Ed Psyc report 6th of February 2026 with a diagnosis of dyslexia. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "FC", "Teacher": "H. Maine"}, {"Student UID": 939853, "Grade": "PYP3", "Class": "3HM", "Teacher Email": "hmaine@ris.ae", "Student Email": "lev.tatarenkov@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "ELL Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nMarch 2025 - was moved to the Tier 1 monitoring group._x000D_\nJune 2025 - was removed from the ELL register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "LT", "Teacher": "H. Maine"}, {"Student UID": 930616, "Grade": "PYP3", "Class": "3HM", "Teacher Email": "hmaine@ris.ae", "Student Email": "mayed.alneyadi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Needs a speech assessment, requires a behaviour plan and need to look into academic development. In the process of assessing and devising an IEP._x000D_\nMayed is on a Level 2 - pullout support for Socio- emotional and Behavioural support. _x000D_\nMarch 2024 - Mayed is no longer recieiving pull out support for his socio-emotional support - he is recieving literacy intervention. _x000D_\nNovember 2024 - Mayed is now on a combined IEP/ELL intervention plan", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MA", "Teacher": "H. Maine"}, {"Student UID": 945499, "Grade": "PYP3", "Class": "3HM", "Teacher Email": "hmaine@ris.ae", "Student Email": "mohamed.shalaby@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "September 2024 - was placed on an ELL plan._x000D_\nApril 2025 - Mohamed was referred to Ms.Niki (PYP Inclusion Teacher) as he was still struggling with retention of concepts. He is now on a Combined ELL and IEP. _x000D_\nJune 2025 - following review of Mohamed's goals as well as his progress while being on an ELL plan. It has been decided that Mohamed will only recieve support from the inclusion teacher and no long see Ms.Sofia (ELL)", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MS", "Teacher": "H. Maine"}, {"Student UID": 929692, "Grade": "PYP3", "Class": "3LC", "Teacher Email": "lcostello@ris.ae", "Student Email": "alejandro.ruifernandez@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Was referred in November 2022_x000D_\nOn Tier one monitoring for Concentration and classroom functioning", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AVR", "Teacher": "L. Costello"}, {"Student UID": 925566, "Grade": "PYP3", "Class": "3LC", "Teacher Email": "lcostello@ris.ae", "Student Email": "madeleine.fernandez@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Madeleine is consulting with a Speech Therapist - Tamlyn Brown at Kids first Medical Centre - she sends SST exercises for Madeliene to do - the LA does it with her 10 mins daily._x000D_\nOn Tier 1 monitoring for her phonics and writing needs. _x000D_\nMarch 2025 - No longer doing Speech activities but is remaining on Tier 1 for monitoring purposes", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MF", "Teacher": "L. Costello"}, {"Student UID": 925349, "Grade": "PYP3", "Class": "3LC", "Teacher Email": "lcostello@ris.ae", "Student Email": "mieke.vanniekerk@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Mieke was placed on a Tier 2 plan for her Cognition and learning needs_x000D_\nNovember 2025 - Mieke has been assessed for concerns of Dyslexi - her Diagnosis has come back for mild Dyslexia and she has been placed on Tier 2 + Ext", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MVN", "Teacher": "L. Costello"}, {"Student UID": 931022, "Grade": "PYP3", "Class": "3LC", "Teacher Email": "lcostello@ris.ae", "Student Email": "niyla.alremeithi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "December 2024 - Niyla has been placed on a Tier 2 intervention plan for her cognitive and learning needs", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "NA", "Teacher": "L. Costello"}, {"Student UID": 926023, "Grade": "PYP3", "Class": "3LK", "Teacher Email": "lkolesky@ris.ae", "Student Email": "alice.quinzico@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2025 - Alice was referred to Inclusion - following observations and assessments - it was found that her concentration is her greatest challenge. She has been placed on Tier 1 monitoring - should her needs increase she will be re-evaluated.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AQ", "Teacher": "L. Kolesky"}, {"Student UID": 925905, "Grade": "PYP3", "Class": "3LK", "Teacher Email": "lkolesky@ris.ae", "Student Email": "azaan.hamid@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": "", "Register Notes": "Referred on the 2nd June - did some baseline assessments and there are speech concerns and has weak fine motor skills. Will monitor performance over the first term to decide whether or not he requires some goals in an IEP._x000D_\nHas been removed from Register as he is functioning well in class and does not need additional support from sst", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AH", "Teacher": "L. Kolesky"}, {"Student UID": 925463, "Grade": "PYP3", "Class": "3LK", "Teacher Email": "lkolesky@ris.ae", "Student Email": "celia.alhammadi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Celia has been receiving pull out support for Socio emotional and Social Skills._x000D_\nCelia has been moved onto a Level 1 since September 2022 as she is able to effectively regulate her emotions with strategies put in place by the classroom teacher. She will continue to be monitored._x000D_\nOctober 2023 - Celia was placed on Tier 2 - Intervention (Focus and concentration, Phonics and letter formation, Retention difficulties, Reduced speech clarity)_x000D_\nNovember 2024 - Celia was  moved to a combined ELL/IEP_x000D_\nJune 2025 - Celia no longer requires academic support, but will need to continue recieving Socio Emotional and ELL support", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "CA", "Teacher": "L. Kolesky"}, {"Student UID": 945636, "Grade": "PYP3", "Class": "3LK", "Teacher Email": "lkolesky@ris.ae", "Student Email": "martina.paolini@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2024 - was placed on an ELL plan. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MP", "Teacher": "L. Kolesky"}, {"Student UID": 982127, "Grade": "PYP3", "Class": "3LK", "Teacher Email": "lkolesky@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Came with a diagnosis of Dyslexia ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "ST", "Teacher": "L. Kolesky"}, {"Student UID": 926535, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "pmayibeki@ris.ae", "Student Email": "aoife.curran@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Aoife was placed on a Tier 2 intervention plan for her cognitive and learning needs. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AC", "Teacher": "P. Mayibeki"}, {"Student UID": 981884, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Daria was referred to SST in January 2026 for social, emotional as well as ELL needs. Following assessments she has been placed on Teir 2 for he Socio-emotional and ALN needs", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "DR", "Teacher": ""}, {"Student UID": 936743, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "elliot.maniates@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Communication and Interaction", "Register Notes": "October 2024 - Elliot was placed on a Tier 1 plan following an assessment carried out by Perfect Balance for his speech and language needs - Elliot receives third party - in school services - from Megan Maguire (Speech and Language Therapist)  _x000D_\nJanuary 2025 - Elliot was discharged from Speech and Language Therapy by Megan Maguire due to improved fluency in speech. He will however remain should the need for further SLT interventions arise._x000D_\nJune 2025 - after speaking to mum - it was decided that Elliot would be removed from the ALN module as he is no longer recieving therapies. Parents are not forseeing him having to return to therapy anytime soon. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EM", "Teacher": ""}, {"Student UID": 945534, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "hamdan.alkindi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "He was assessed at the end of the academic year 2023-2024._x000D_\nSeptember 2024, he was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HA", "Teacher": ""}, {"Student UID": 979909, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "hazza.alharthi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "October 2024 - was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HA", "Teacher": ""}, {"Student UID": 945544, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "jihyuk.ha@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "Received his referral on 23rd April, started on 6th May 2024._x000D_\nMay 2024 - was placed on an ELL plan._x000D_\nFebruary 2026 - was moved to tier 1 monitoring group.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "JH", "Teacher": ""}, {"Student UID": 939096, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "khalid.alhemeiri@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": "", "Register Notes": "Khalid is a happy young boy who loves life despite having a congenital heart condition. He has a sound mind and picks things up quickly., and no one can tell that he has this condition. The only thing is that he lacks the athletic endurance of other children his age.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "KA", "Teacher": ""}, {"Student UID": 940380, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "mariana.ducap@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "ELL Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nNovember 2024 - was moved to Tier 1 monitoring group._x000D_\nJune 2025 - was removed from the ELL register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MMD", "Teacher": ""}, {"Student UID": 944080, "Grade": "PYP3", "Class": "3SL", "Teacher Email": "", "Student Email": "mia.john@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "January 2025 - was placed on an ELL plan._x000D_\nNovember 2025 - was placed on the Tier 1 monitoring list.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MJ", "Teacher": ""}, {"Student UID": 925690, "Grade": "PYP3", "Class": "3VC", "Teacher Email": "vcosgrave@ris.ae", "Student Email": "ghazi.khair@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Physical , Sensory and Medical", "Register Notes": "For medical reasons - he has a physical condition called Perthes Disease, which effects what he is allowed/not allowed to do physically.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "GK", "Teacher": "V. Cosgrave"}, {"Student UID": 982081, "Grade": "PYP3", "Class": "3VC", "Teacher Email": "vcosgrave@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "IN", "Teacher": "V. Cosgrave"}, {"Student UID": 929806, "Grade": "PYP3", "Class": "3VC", "Teacher Email": "vcosgrave@ris.ae", "Student Email": "matilde.munoz@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Matilde was placed on a Tier 2 plan for her Cognition and learning needs_x000D_\n_x000D_\nNovember 2025 - Based on the progress Matilde has made - Ms.Vicky and Ms.Niki, Feel that she would no longer require Tier 2 support and have moved her to a student success plan (Tier 1)", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MTM", "Teacher": "V. Cosgrave"}, {"Student UID": 981949, "Grade": "PYP3", "Class": "3VC", "Teacher Email": "vcosgrave@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "New to English. Informed by Ms.Victoria, his HR teacher in August 2025._x000D_\nFebruary 2026 - moved to ELL Tier 2.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TAGA", "Teacher": "V. Cosgrave"}, {"Student UID": 897938, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "e.aldhefairi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EA", "Teacher": "A. Smyth"}, {"Student UID": 898254, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "khalifa.alhosani@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "2 September 2024 _x000D_\nMarch 2025 - Khalifa has made comendable progress and it was decided by his class teacher and Inclusion Teacher that he no longer requires assistance on a Tier 2 Level - he will be moved down to Tier 1 ona monitoring basis.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "KHA", "Teacher": "A. Smyth"}, {"Student UID": 924540, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "mira.basur@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "On a monitoring basis for spelling and reading_x000D_\nFollowing review with Ms.Annie, in June 2025 - it was decided that Mira would be removed from the ALN register. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MB", "Teacher": "A. Smyth"}, {"Student UID": 930173, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "nada.yousuf@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "February 2023 - placed on a Tier 2 plan for literacy support._x000D_\nDecember 2024 - still on a Tier 2 plan but Math has been added to her intervention needs.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "NY", "Teacher": "A. Smyth"}, {"Student UID": 932371, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "saif.almesmari@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2023 - was placed on a level 2 passport for literacy support._x000D_\n_x000D_\nMay 2024 received diagnosis of Inattative ADHD and Specific learning disorder in reading and writing ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "A. Smyth"}, {"Student UID": 920940, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "salama.alshemeili@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "January 2023 - Salama was placed on a level 2 student support passport for literacy support._x000D_\nSeptember 2024 - Math was added to Salama's support plan ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "A. Smyth"}, {"Student UID": 981855, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SS", "Teacher": "A. Smyth"}, {"Student UID": 898140, "Grade": "PYP4", "Class": "4AS", "Teacher Email": "asmyth@ris.ae", "Student Email": "t.tantirujananont@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Thut is on a Level1 classroom support", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TT", "Teacher": "A. Smyth"}, {"Student UID": 898101, "Grade": "PYP4", "Class": "4CP", "Teacher Email": "cpieterse@ris.ae", "Student Email": "m.abdulhannan@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Physical , Sensory and Medical", "Register Notes": "Monitoring basis - Mariya has very mild cerebral palsy. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MA", "Teacher": "C. Pieterse"}, {"Student UID": 940738, "Grade": "PYP4", "Class": "4CP", "Teacher Email": "cpieterse@ris.ae", "Student Email": "tiago.sardinha@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "ELL Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nNovember 2024 - was moved to Tier 1 monitoring group._x000D_\nJune 2025 - was removed from the ELL register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TFDSMS", "Teacher": "C. Pieterse"}, {"Student UID": 931587, "Grade": "PYP4", "Class": "4DS", "Teacher Email": "dswart@ris.ae", "Student Email": "aditya.joseph@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2024 - Adi was placed on a Tier 2 intervention plan for his cognitive and learning needs. _x000D_\nMarch 2026- Adi was placed on Tier 1 Monitoring. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AJ", "Teacher": "D. Swart"}, {"Student UID": 923707, "Grade": "PYP4", "Class": "4DS", "Teacher Email": "dswart@ris.ae", "Student Email": "haley.botha@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": "", "Register Notes": "Needs extra support with English, she does well in and used to First language", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HB", "Teacher": "D. Swart"}, {"Student UID": 982071, "Grade": "PYP4", "Class": "4DS", "Teacher Email": "dswart@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "LM", "Teacher": "D. Swart"}, {"Student UID": 919642, "Grade": "PYP4", "Class": "4DS", "Teacher Email": "dswart@ris.ae", "Student Email": "mohamed.alhameli@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MAH", "Teacher": "D. Swart"}, {"Student UID": 982041, "Grade": "PYP4", "Class": "4DS", "Teacher Email": "dswart@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "PG", "Teacher": "D. Swart"}, {"Student UID": 981919, "Grade": "PYP4", "Class": "4DS", "Teacher Email": "dswart@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan._x000D_\nFebruary 2026 - was moved to tier 1 monitoring group.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TJVOK", "Teacher": "D. Swart"}, {"Student UID": 940956, "Grade": "PYP4", "Class": "4HB", "Teacher Email": "hbullock@ris.ae", "Student Email": "hamad.alhammadi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "January 2024 - was placed on an ELL plan._x000D_\nMarch 2025 - was placed on the combined IEP._x000D_\nJune 2025 - was removed from the ELL and remained on IEP support.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HA", "Teacher": "H. Bullock"}, {"Student UID": 940563, "Grade": "PYP4", "Class": "4HB", "Teacher Email": "hbullock@ris.ae", "Student Email": "mathis.morvan@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math", "Register Notes": "January 2024 - Mathis was placed on a Tier 2 intervention plan for his cognition and learning needs. _x000D_\nMarch 2025 - Based on the progress Mathis has made and following a review of his IEP goals, both his class teacher and inclusion teacher are in agreement that he no longer needs assistance on a Tier 2 level. Mathis is being moved to Tier 1 - on a monitoring basis.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MM", "Teacher": "H. Bullock"}, {"Student UID": 939942, "Grade": "PYP4", "Class": "4HB", "Teacher Email": "hbullock@ris.ae", "Student Email": "valeriia.tuneva@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "September 2023 - was placed on an ELL plan._x000D_\nNovember 2025 - was placed on the Tier 1 monitoring list.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "VT", "Teacher": "H. Bullock"}, {"Student UID": 931376, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "ahmed.alfalahi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Ahmed struggles to stay seated during class time and needs regular movement breaks ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AA", "Teacher": "K. Brosnan"}, {"Student UID": 932394, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "l.alhammadi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math", "Register Notes": "March 2023 - placed on a level 2 student support passport for literacy support. _x000D_\n_x000D_\nMarch 2025- Received diagnosis of Dyscalculia ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "LA", "Teacher": "K. Brosnan"}, {"Student UID": 981886, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Quim joined the school in August 2025 with an IEP from his previous school with IEP goals focusing on reading and writing. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "QG", "Teacher": "K. Brosnan"}, {"Student UID": 981762, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "ryan.elfauri@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Ryan joined the school in January 2025 and was put in a Tier 2 intervention plan for his cognitive and learning needs. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "RE", "Teacher": "K. Brosnan"}, {"Student UID": 945655, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "saara.hirvonen@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2024 - was placed on an ELL plan._x000D_\nOctober 2025 - was moved to Tier 1._x000D_\nFebruary 2026 - was taken off the register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SH", "Teacher": "K. Brosnan"}, {"Student UID": 920247, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "shaikha.alqubaisi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "Was referred to ELL on May 2025 and placed on Tier 2 ELL.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "K. Brosnan"}, {"Student UID": 931394, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "yarub.hussein@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "October 2022 - Assessed on the placement LAS Links assessment and falls in the beginning range of English language proficiency._x000D_\nSeptember 2022 - was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "YH", "Teacher": "K. Brosnan"}, {"Student UID": 919680, "Grade": "PYP4", "Class": "4KB", "Teacher Email": "kbrosnan@ris.ae", "Student Email": "yousef.alahmad@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "", "Support Area": "", "Register Notes": "Did not receive a referral for Yousef however Caiomhe was concerned about his speech and on observation he has speech as well as motor difficulties - it was suggested to mom to go for a Speech Therapy assessment and that his motor skills would be monitored beginning of next year.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "YAA", "Teacher": "K. Brosnan"}, {"Student UID": 920218, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "ahmed.suwaidi@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "November 2020: Has been receiving support from the counsellor for decreased ability to regulate emotions. Counsellor has been working closely with teacher and providing strategies to teacher to try in the class with him._x000D_\nJune 2022 - will be going onto a student passport._x000D_\nNovember 2024 - Mum has requested that he be taken off support - Services currently suspended", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AA", "Teacher": "M. Smith"}, {"Student UID": 898026, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "aya.alsayegh@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "January 2023 - placed on a level 2 passport for literacy support _x000D_\nJune 2024 - Placed on a Tier 1 passport ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AAS", "Teacher": "M. Smith"}, {"Student UID": 937357, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "emma.petz@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "December 2024 - Emma was placed on a Tier 2 Intervention plan for her cognition and learning needs. ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EP", "Teacher": "M. Smith"}, {"Student UID": 930125, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "f.polomihaila@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2022 - Put on a Tier 2 Plan for literacy support_x000D_\nDecember 2024 - Fabian was moved from Tier 2 to Tier 1 - based on his progress when IEPs where reviewed in November 2024_x000D_\n", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "FVP", "Teacher": "M. Smith"}, {"Student UID": 930064, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "hamadalmarri@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Hamad was referred in April 2023 due to concerns with his writing and reading. After assessment he was placed on aa passport in May and passport meeting with parents took place in June 2023.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HAM", "Teacher": "M. Smith"}, {"Student UID": 982001, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 3", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "Came with an IEP from previous school (Al Basma) _x000D_\nWent onto Inclusion register immediately. _x000D_\nReceived Ed Psych report 6th of February 2026 with a diagnosis of Developmental learning disorder with impairment in multiple academic domains.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "M. Smith"}, {"Student UID": 940643, "Grade": "PYP4", "Class": "4MS", "Teacher Email": "msmith@ris.ae", "Student Email": "tobias.robinson@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Counsellor", "Support Area": "Social, Emotional and Behavioural", "Register Notes": "Nil", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "TR", "Teacher": "M. Smith"}, {"Student UID": 919848, "Grade": "PYP4", "Class": "4TM", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "abdalla.alali@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Referral made December 2024_x000D_\n11 March 2024", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AAA", "Teacher": "T. McDonald"}, {"Student UID": 924850, "Grade": "PYP4", "Class": "4TM", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "alfred.grieve@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2024 - Alfie is placed on Tier 2 intervention for his cognitive and learning needs_x000D_\nMarch 2025 - Based on the progress Alfie has made and following a review of his IEP goals, both his class teacher and inclusion teacher are in agreement that he no longer needs asistance on a Tier 2 level. Alfie is being moved to Tier 1 - on a monitoring basis.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AG", "Teacher": "T. McDonald"}, {"Student UID": 920037, "Grade": "PYP4", "Class": "4TM", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "ciaran.valtierra@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "February 2023 - was placed on a level 2 student support passport for literacy support.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "CV", "Teacher": "T. McDonald"}, {"Student UID": 924447, "Grade": "PYP4", "Class": "4TM", "Teacher Email": "tmacdonald@ris.ae", "Student Email": "malek.maher@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "February 2023 - placed on a Tier 2 intervention plan for literacy support.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MM", "Teacher": "T. McDonald"}, {"Student UID": 930243, "Grade": "PYP5", "Class": "5AD", "Teacher Email": "aodonnell@ris.ae", "Student Email": "bahar.askari@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "January 2022 - Placed on a SST passport due to literacy difficulties.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "BA", "Teacher": "A. O'Donnell"}, {"Student UID": 930265, "Grade": "PYP5", "Class": "5AD", "Teacher Email": "aodonnell@ris.ae", "Student Email": "s.abdulla@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 3", "Support Role": "Inclusion Teacher", "Support Area": "Communication and Interaction", "Register Notes": "Saif would need to receive learning support. The family would be happy to discuss these matters in person.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "A. O'Donnell"}, {"Student UID": 898509, "Grade": "PYP5", "Class": "5AD", "Teacher Email": "aodonnell@ris.ae", "Student Email": "sophia.rodriguez@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SR", "Teacher": "A. O'Donnell"}, {"Student UID": 945625, "Grade": "PYP5", "Class": "5CM", "Teacher Email": "cmcinerney@ris.ae", "Student Email": "emil.haddadin@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "New to English - support has started in first week in new academic year_x000D_\nSeptember 2024 - was placed on an ELL plan._x000D_\nSeptember 2025 - was moved to Tier 1._x000D_\nFebruary 2026 - was taken off the register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "ELH", "Teacher": "C. Mcinerney"}, {"Student UID": 945650, "Grade": "PYP5", "Class": "5CM", "Teacher Email": "cmcinerney@ris.ae", "Student Email": "noah.gaspar@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "New to English - support has started in first week in new academic year_x000D_\nSeptember 2024 - was placed on an ELL plan._x000D_\nSeptember 2025 - was moved to Tier 1._x000D_\nFebruary 2026 - was taken off the register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "NG", "Teacher": "C. Mcinerney"}, {"Student UID": 945654, "Grade": "PYP5", "Class": "5EF", "Teacher Email": "efinnerty@ris.ae", "Student Email": "helmi.hirvonen@ris.ae", "Additional Need Indicator": "ELL", "Register Flag": "", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "September 2024 - was placed on an ELL plan._x000D_\nOctober 2025 - was move to Tier 1._x000D_\nFebruary 2026 - was taken off the register.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "HH", "Teacher": "E. Finnerty"}, {"Student UID": 945809, "Grade": "PYP5", "Class": "5EF", "Teacher Email": "efinnerty@ris.ae", "Student Email": "shamsa.almadani@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "E. Finnerty"}, {"Student UID": 898322, "Grade": "PYP5", "Class": "5KS", "Teacher Email": "ksadaphal@ris.ae", "Student Email": "celina.gumbleton@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "March 2022 - was placed on a student passport due to difficulties noted in literacy.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "CG", "Teacher": "K. Sadaphal"}, {"Student UID": 981933, "Grade": "PYP5", "Class": "5KS", "Teacher Email": "ksadaphal@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "EAC", "Teacher": "K. Sadaphal"}, {"Student UID": 931917, "Grade": "PYP5", "Class": "5KS", "Teacher Email": "ksadaphal@ris.ae", "Student Email": "mahra.alkindi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "October 2022 - was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MA", "Teacher": "K. Sadaphal"}, {"Student UID": 931135, "Grade": "PYP5", "Class": "5KS", "Teacher Email": "ksadaphal@ris.ae", "Student Email": "nicole.vonsoosten@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "", "Register Notes": "Nicole was referred on the 21May 2022 - she was assessed with in house assessments and her reading and writing is above average for her age. She does however have decreased concentration, fidgety, has a lisp. She requires some accommodations to the classroom setting so that she is able to complete tasks.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "NVS", "Teacher": "K. Sadaphal"}, {"Student UID": 931525, "Grade": "PYP5", "Class": "5KS", "Teacher Email": "ksadaphal@ris.ae", "Student Email": "s.almarzooqi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "Assessed on 17/4/23", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SAM", "Teacher": "K. Sadaphal"}, {"Student UID": 932673, "Grade": "PYP5", "Class": "5KS", "Teacher Email": "ksadaphal@ris.ae", "Student Email": "shooq.alsalmi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Math", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "K. Sadaphal"}, {"Student UID": 945543, "Grade": "PYP5", "Class": "5LB", "Teacher Email": "lbibi@ris.ae", "Student Email": "jihoon.ha@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "Received his referral on 23rd April, started on 6th May 2024._x000D_\nMay 2024 - was placed on an ELL plan._x000D_\nFebruary 2026 - was moved to tier 1 monitoring group.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "JH", "Teacher": "L. Bibi"}, {"Student UID": 938338, "Grade": "PYP5", "Class": "5LB", "Teacher Email": "lbibi@ris.ae", "Student Email": "maria.alhammadi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "MAH", "Teacher": "L. Bibi"}, {"Student UID": 898055, "Grade": "PYP5", "Class": "5LB", "Teacher Email": "lbibi@ris.ae", "Student Email": "qais.morrison@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "QM", "Teacher": "L. Bibi"}, {"Student UID": 981947, "Grade": "PYP5", "Class": "5LB", "Teacher Email": "lbibi@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "New to English 26.8.25. Home language is Swedish. _x000D_\nSeptember 2025 - was placed on an ELL plan._x000D_\nFebruary 2026 - moved to ELL Tier 2._x000D_\n", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "VNEA", "Teacher": "L. Bibi"}, {"Student UID": 925378, "Grade": "PYP5", "Class": "5MS", "Teacher Email": "michealmsmith@ris.ae", "Student Email": "a.alkayyoomi@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Maths and Literacy", "Register Notes": "March 2022 - was placed on an EAL passport_x000D_\nApril 2025 - was placed on an IEP ", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "AA", "Teacher": "M. Smith"}, {"Student UID": 982186, "Grade": "PYP5", "Class": "5MS", "Teacher Email": "michealmsmith@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "FA", "Teacher": "M. Smith"}, {"Student UID": 931920, "Grade": "PYP5", "Class": "5MS", "Teacher Email": "michealmsmith@ris.ae", "Student Email": "khalifa.alkindi@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "October 2022 - was placed on an ELL plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "KA", "Teacher": "M. Smith"}, {"Student UID": 898461, "Grade": "PYP5", "Class": "5MS", "Teacher Email": "michealmsmith@ris.ae", "Student Email": "sultan.alali@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "September 2021 - was assessed by SST and he came out as a beginner in the LAS links assessment. October 2021 - pull out EAL support in small groups has commenced. (RPE) _x000D_\nSeptember 2023 -assessed by SST and placed on SST register, level 2 pull out support", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SAA", "Teacher": "M. Smith"}, {"Student UID": 931509, "Grade": "PYP5", "Class": "5MS", "Teacher Email": "michealmsmith@ris.ae", "Student Email": "sultan.almansoori@ris.ae", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 1", "Support Role": "ELL Teacher", "Support Area": "ELL", "Register Notes": "October 2021 - Was placed on an ELL plan._x000D_\nJune 2025 - was moved to Tier 1 monitoring group._x000D_\n", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SAM", "Teacher": "M. Smith"}, {"Student UID": 981889, "Grade": "PYP5", "Class": "5MS", "Teacher Email": "michealmsmith@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN/ELL", "Register Flag": "ELL Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "ELL", "Register Notes": "November 2025 - was placed on an ELL Plan.", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "VP", "Teacher": "M. Smith"}, {"Student UID": 939974, "Grade": "PYP5", "Class": "5RP", "Teacher Email": "rperrone@ris.ae", "Student Email": "emily.surtees@ris.ae", "Additional Need Indicator": "ALN", "Register Flag": "Tier 1 (with Ext. Report)", "Support Role": "Inclusion Teacher", "Support Area": "", "Register Notes": "Emily has very mild cerebral palsy but no learning disabilities and has never been referred for any special educational assistance", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "ES", "Teacher": "R. Perrone"}, {"Student UID": 982157, "Grade": "PYP5", "Class": "5RP", "Teacher Email": "rperrone@ris.ae", "Student Email": "", "Additional Need Indicator": "ALN", "Register Flag": "Tier 2", "Support Role": "Inclusion Teacher", "Support Area": "Cognition and Learning: Literacy", "Register Notes": "", "Matched in Latest iSAMS Export": "Yes", "Student Initials": "SA", "Teacher": "R. Perrone"}];
+const sessionCatalog = ["Fri 05 Jun 2026 | AM (8:00–10:00)", "Fri 12 Jun 2026 | AM (8:00–10:00)", "Fri 19 Jun 2026 | AM (8:00–10:00)", "Mon 01 Jun 2026 | AM (8:00–10:00)", "Mon 01 Jun 2026 | PM (10:40–12:40)", "Mon 08 Jun 2026 | AM (8:00–10:00)", "Mon 08 Jun 2026 | PM (10:40–12:40)", "Mon 15 Jun 2026 | AM (8:00–10:00)", "Mon 15 Jun 2026 | PM (10:40–12:40)", "Mon 22 Jun 2026 | AM (8:00–10:00)", "Thu 04 Jun 2026 | AM (8:00–10:00)", "Thu 04 Jun 2026 | PM (10:40–12:40)", "Thu 11 Jun 2026 | AM (8:00–10:00)", "Thu 11 Jun 2026 | PM (10:40–12:40)", "Thu 18 Jun 2026 | AM (8:00–10:00)", "Thu 18 Jun 2026 | PM (10:40–12:40)", "Tue 02 Jun 2026 | AM (8:00–10:00)", "Tue 02 Jun 2026 | PM (10:40–12:40)", "Tue 09 Jun 2026 | AM (8:00–10:00)", "Tue 09 Jun 2026 | PM (10:40–12:40)", "Tue 16 Jun 2026 | AM (8:00–10:00)", "Tue 16 Jun 2026 | PM (10:40–12:40)", "Tue 19 May 2026 | P1–2 (8:00–9:20)", "Tue 19 May 2026 | P4–5 (10:40–12:00)", "Tue 19 May 2026 | P5–6 (11:20–12:40)", "Wed 03 Jun 2026 | AM (8:00–10:00)", "Wed 03 Jun 2026 | PM (10:40–12:40)", "Wed 10 Jun 2026 | AM (8:00–10:00)", "Wed 10 Jun 2026 | PM (10:40–12:40)", "Wed 17 Jun 2026 | AM (8:00–10:00)", "Wed 17 Jun 2026 | PM (10:40–12:40)", "Wed 20 May 2026 | P1–2 (8:00–9:20)"];
+let matrixData = JSON.parse(JSON.stringify(originalMatrix));
+
+function classOptionsHtml() {
+  const classes = [...new Set(matrixData.map(r => r.Class))].sort();
+  return '<option value="">All classes</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function syncClassFilters() {
+  document.getElementById('matrixClassFilter').innerHTML = classOptionsHtml();
+  document.getElementById('dateClassFilter').innerHTML = classOptionsHtml();
+}
+
+function statusForRow(row) {
+  const missing = ['PTS','PTM','PTE'].filter(t => !row[t]);
+  return missing.length ? `Missing: ${missing.join(', ')}` : 'Complete';
+}
+
+function parseValue(value) {
+  if (!value) return null;
+  const m = String(value).match(/^(.*?)\s*\|\s*(.*?)\s*\((.*?)\)$/);
+  if (!m) return null;
+  return { date: m[1].trim(), session: m[2].trim(), time: m[3].trim() };
+}
 
 function gradeClass(grade) {
   if (grade === 'PYP3') return 'g3';
@@ -147,73 +222,218 @@ function gradeClass(grade) {
   return 'g5';
 }
 function testClass(test) {
-  return (test || '').toLowerCase();
+  return test.toLowerCase();
 }
-function renderMaster() {
-  const grade = document.getElementById('gradeFilter').value;
-  const test = document.getElementById('testFilter').value;
-  const cls = document.getElementById('classFilter').value;
-  const q = document.getElementById('searchFilter').value.toLowerCase().trim();
-  const filtered = scheduleData.filter(r => {
+
+function usageCounts(excludeIdx = null, excludeTest = null) {
+  const counts = new Map();
+  matrixData.forEach((row, idx) => {
+    ['PTS','PTM','PTE'].forEach(test => {
+      if (idx === excludeIdx && test === excludeTest) return;
+      const v = row[test];
+      if (!v) return;
+      counts.set(v, (counts.get(v) || 0) + 1);
+    });
+  });
+  return counts;
+}
+
+function rowSessionValues(row, excludeTest = null) {
+  const vals = new Set();
+  ['PTS','PTM','PTE'].forEach(test => {
+    if (test === excludeTest) return;
+    if (row[test]) vals.add(row[test]);
+  });
+  return vals;
+}
+
+function allowedOptions(idx, test) {
+  const row = matrixData[idx];
+  const counts = usageCounts(idx, test);
+  const sameClassSessions = rowSessionValues(row, test);
+
+  const out = [''].concat(sessionCatalog.filter(value => {
+    if (sameClassSessions.has(value)) return false; // one class cannot take two tests in same session
+    const used = counts.get(value) || 0;
+    return used < 2; // max two classes in any session
+  }));
+
+  // keep current value even if not in catalog or would otherwise disappear
+  if (row[test] && !out.includes(row[test])) out.push(row[test]);
+  return out;
+}
+
+function buildSelect(idx, test, current) {
+  const opts = allowedOptions(idx, test);
+  return `<select class="cell-select" data-idx="${idx}" data-test="${test}">
+    ${opts.map(v => `<option value="${v}" ${v === (current || '') ? 'selected' : ''}>${v || '—'}</option>`).join('')}
+  </select>`;
+}
+
+function renderMatrix() {
+  const grade = document.getElementById('matrixGradeFilter').value;
+  const cls = document.getElementById('matrixClassFilter').value;
+  const incompleteOnly = document.getElementById('incompleteFilter').value === 'yes';
+  const body = document.getElementById('matrixBody');
+
+  const filtered = matrixData.filter(r => {
     if (grade && r.Grade !== grade) return false;
-    if (test && r.Test !== test) return false;
     if (cls && r.Class !== cls) return false;
-    if (q) {
-      const hay = [r["Homeroom Teacher"], r["Affected Lessons"], r["Timetable Snapshot"], r.Class, r.Test, r.StageLabel].join(' ').toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
+    if (incompleteOnly && statusForRow(r) === 'Complete') return false;
     return true;
   });
-  const body = document.getElementById('masterBody');
-  body.innerHTML = filtered.map(r => `
-    <tr class="session-row" data-dateiso="${r.DateISO}" data-window="${r.Window}">
-      <td>${r.Date}</td>
-      <td>${r.Window} · ${r.Times}</td>
-      <td><span class="stage-pill">${r.StageLabel}</span></td>
-      <td><span class="badge ${gradeClass(r.Grade)}">${r.Grade}</span></td>
-      <td>${r.Class}</td>
-      <td><span class="badge ${testClass(r.Test)}">${r.Test}</span></td>
-      <td>${r["Homeroom Teacher"] || ''}</td>
-      <td>${r.Students || ''}</td>
-      <td>${r["ALN/ELL"] || ''}</td>
-      <td>${r["Affected Lessons"] || ''}</td>
-    </tr>
-  `).join('');
-  body.querySelectorAll('tr').forEach(tr => tr.addEventListener('click', () => openModal(tr.dataset.dateiso, tr.dataset.window)));
+
+  const completeCount = matrixData.filter(r => statusForRow(r) === 'Complete').length;
+  document.getElementById('completenessSummary').textContent =
+    `${completeCount} of ${matrixData.length} classes complete. ` +
+    `${matrixData.length - completeCount} class(es) still missing at least one test.`;
+
+  body.innerHTML = filtered.map(r => {
+    const idx = matrixData.findIndex(x => x.Class === r.Class);
+    const status = statusForRow(r);
+    return `
+      <tr>
+        <td><span class="badge ${gradeClass(r.Grade)}">${r.Grade}</span></td>
+        <td>${r.Class}</td>
+        <td>${r.Teacher}</td>
+        <td>${r.Students}</td>
+        <td>${r.ALN_ELL}</td>
+        <td>${buildSelect(idx, 'PTS', r.PTS)}</td>
+        <td>${buildSelect(idx, 'PTM', r.PTM)}</td>
+        <td>${buildSelect(idx, 'PTE', r.PTE)}</td>
+        <td class="${status === 'Complete' ? 'status-complete' : 'status-incomplete'}">${status}</td>
+      </tr>
+    `;
+  }).join('');
+
+  body.querySelectorAll('.cell-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = Number(e.target.dataset.idx);
+      const test = e.target.dataset.test;
+      matrixData[idx][test] = e.target.value;
+      renderMatrix();
+      renderDateView();
+    });
+  });
 }
-function openModal(dateISO, windowName) {
-  const rows = scheduleData.filter(r => r.DateISO === dateISO && r.Window === windowName);
-  if (!rows.length) return;
-  document.getElementById('modalTitle').textContent = `${rows[0].Date} · ${rows[0].Window} · ${rows[0].Times}`;
-  document.getElementById('modalMeta').textContent = `Session contains ${rows.length} scheduled row(s).`;
+
+function buildDateRows() {
+  const rows = [];
+  matrixData.forEach(r => {
+    ['PTS','PTM','PTE'].forEach(test => {
+      if (!r[test]) return;
+      const parsed = parseValue(r[test]);
+      if (!parsed) return;
+      rows.push({
+        sortKey: `${parsed.date}|${parsed.session}|${r.Class}|${test}`,
+        date: parsed.date,
+        session: parsed.session,
+        time: parsed.time,
+        grade: r.Grade,
+        className: r.Class,
+        test,
+        teacher: r.Teacher,
+        students: r.Students,
+        aln: r.ALN_ELL,
+        value: r[test]
+      });
+    });
+  });
+  rows.sort((a,b) => a.sortKey.localeCompare(b.sortKey));
+  return rows;
+}
+
+function renderDateView() {
+  const grade = document.getElementById('dateGradeFilter').value;
+  const test = document.getElementById('dateTestFilter').value;
+  const cls = document.getElementById('dateClassFilter').value;
+
+  const flat = buildDateRows().filter(r => {
+    if (grade && r.grade !== grade) return false;
+    if (test && r.test !== test) return false;
+    if (cls && r.className !== cls) return false;
+    return true;
+  });
+
+  const grouped = new Map();
+  flat.forEach(r => {
+    const key = `${r.date}|${r.session}|${r.time}`;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(r);
+  });
+
+  const body = document.getElementById('dateBody');
+  body.innerHTML = Array.from(grouped.entries()).map(([key, items]) => {
+    const first = items[0];
+    const classes = items.map(x => x.className).join(', ');
+    const tests = items.map(x => x.test).join(', ');
+    const grades = [...new Set(items.map(x => x.grade))].join(', ');
+    return `
+      <tr class="session-row" data-key="${key}">
+        <td>${first.date}</td>
+        <td>${first.session}</td>
+        <td>${first.time}</td>
+        <td>${classes}</td>
+        <td>${tests}</td>
+        <td>${grades}</td>
+      </tr>
+    `;
+  }).join('');
+
+  body.querySelectorAll('.session-row').forEach(tr => {
+    tr.addEventListener('click', () => openModal(tr.dataset.key));
+  });
+}
+
+function openModal(key) {
+  const [date, session, time] = key.split('|');
+  const rows = buildDateRows().filter(r => r.date === date && r.session === session && r.time === time);
+  document.getElementById('modalTitle').textContent = `${date} · ${session} · ${time}`;
+  document.getElementById('modalMeta').textContent = `This session currently has ${rows.length} scheduled class/test block(s).`;
   document.getElementById('modalBody').innerHTML = rows.map(r => `
     <tr>
-      <td>${r.StageLabel}</td>
-      <td><span class="badge ${gradeClass(r.Grade)}">${r.Grade}</span></td>
-      <td>${r.Class}</td>
-      <td><span class="badge ${testClass(r.Test)}">${r.Test}</span></td>
-      <td>${r["Homeroom Teacher"] || ''}</td>
-      <td>${r.Students || ''}</td>
-      <td>${r["ALN/ELL"] || ''}</td>
-      <td>${r["Affected Lessons"] || ''}</td>
-      <td>${r["Timetable Snapshot"] || ''}</td>
+      <td><span class="badge ${gradeClass(r.grade)}">${r.grade}</span></td>
+      <td>${r.className}</td>
+      <td><span class="badge ${testClass(r.test)}">${r.test}</span></td>
+      <td>${r.teacher}</td>
+      <td>${r.students}</td>
+      <td>${r.aln}</td>
+      <td>${r.value}</td>
     </tr>
   `).join('');
   document.getElementById('modalBackdrop').classList.add('open');
 }
+
 function renderSupport() {
   document.getElementById('supportBody').innerHTML = supportData.map(r => `
     <tr>
       <td>${r.Grade}</td>
       <td>${r.Class}</td>
-      <td>${r["Student Initials"] || ''}</td>
-      <td>${r["Additional Need Indicator"] || ''}</td>
+      <td>${r["Student Initials"]}</td>
+      <td>${r["Additional Need Indicator"]}</td>
       <td>${r["Register Flag"] || ''}</td>
       <td>${r["Support Role"] || ''}</td>
       <td>${r["Support Area"] || ''}</td>
     </tr>
   `).join('');
 }
+
+function exportCsv() {
+  const headers = ['Grade','Class','Teacher','Students','ALN_ELL','PTS','PTM','PTE'];
+  const escapeCsv = v => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const lines = [headers.join(',')].concat(matrixData.map(r => headers.map(h => escapeCsv(r[h])).join(',')));
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'primary_pt_schedule_matrix.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -222,16 +442,30 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById(btn.dataset.tab).classList.add('active');
   });
 });
-['gradeFilter','testFilter','classFilter','searchFilter'].forEach(id => {
-  document.getElementById(id).addEventListener('input', renderMaster);
-  document.getElementById(id).addEventListener('change', renderMaster);
+
+syncClassFilters();
+renderMatrix();
+renderDateView();
+renderSupport();
+
+document.getElementById('matrixGradeFilter').addEventListener('change', renderMatrix);
+document.getElementById('matrixClassFilter').addEventListener('change', renderMatrix);
+document.getElementById('incompleteFilter').addEventListener('change', renderMatrix);
+document.getElementById('dateGradeFilter').addEventListener('change', renderDateView);
+document.getElementById('dateTestFilter').addEventListener('change', renderDateView);
+document.getElementById('dateClassFilter').addEventListener('change', renderDateView);
+document.getElementById('exportCsv').addEventListener('click', exportCsv);
+document.getElementById('resetData').addEventListener('click', () => {
+  matrixData = JSON.parse(JSON.stringify(originalMatrix));
+  renderMatrix();
+  renderDateView();
 });
-document.getElementById('closeModal').addEventListener('click', () => document.getElementById('modalBackdrop').classList.remove('open'));
-document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+document.getElementById('closeModal').addEventListener('click', () => {
+  document.getElementById('modalBackdrop').classList.remove('open');
+});
+document.getElementById('modalBackdrop').addEventListener('click', e => {
   if (e.target.id === 'modalBackdrop') document.getElementById('modalBackdrop').classList.remove('open');
 });
-renderMaster();
-renderSupport();
 </script>
 </body>
 </html>
